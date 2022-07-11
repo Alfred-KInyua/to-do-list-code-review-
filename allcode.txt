@@ -36,15 +36,12 @@ index.html
 
 
 
-
-
-
-
-
-
 ................................
 javascript 
 ................................
+
+
+
 
 import MyTodoClass from './modules/application.js';
 import './style.css';
