@@ -1,0 +1,354 @@
+..................................................................
+index.html
+..................................................................
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://kit.fontawesome.com/ebe56293cc.js" crossorigin="anonymous"></script>
+
+  <title>My To-do-list program</title>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="wrap">
+      <h2>Today's To Do</h2>
+      <i class="fa-solid fa-arrows-rotate reset"></i>
+    </div>
+
+    <form class="form">
+      <input type="text" required placeholder="Add to your list" id="run">
+      <button type="submit" id="check"><i class="fa fa-check"></i></button>
+    </form>
+
+    <ul class="list"></ul>
+
+    <div class="footer-section">
+      <a href="" class="clear">Clear all completed</a>
+    </div>
+
+  </div>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+................................
+javascript 
+................................
+
+import MyTodoClass from './modules/application.js';
+import './style.css';
+
+const input = document.querySelector('#run');
+const button = document.querySelector('#check');
+
+MyTodoClass.display();
+
+input.addEventListener('focus', (e) => {
+  e.preventDefault();
+  button.style.display = 'block';
+});
+
+document.querySelector('#check').addEventListener('click', (e) => {
+  e.preventDefault();
+  if (input.value) {
+    const desc = input.value;
+    const done = new MyTodoClass(desc);
+    done.addtodolist();
+  }
+  return 0;
+});
+
+document.querySelectorAll('.clear').forEach((link) => {
+  link.addEventListener('click', (e) => {
+    e.preventDefault();
+    MyTodoClass.clearCompleted();
+  });
+});
+
+document.querySelector('.reset').addEventListener('click', (e) => {
+  e.preventDefault();
+  MyTodoClass.reset();
+});
+
+
+
+
+
+
+export default class MyTodoClass {
+  constructor(desc) {
+    this.desc = desc;
+  }
+
+  static clearInput = () => {
+    const capture = document.querySelector('#run');
+    capture.value = '';
+    return true;
+  }
+
+  static getTodo = () => {
+    let todoList = [];
+    const info = localStorage.getItem('todo');
+    if (info === null) {
+      localStorage.setItem('todo', JSON.stringify(todoList));
+    }
+    todoList = JSON.parse(localStorage.getItem('todo'));
+    return todoList;
+  }
+
+  static getIndex = () => {
+    const todoList = MyTodoClass.getTodo();
+    let index = 0;
+    if (todoList === null) {
+      return index + 1;
+    }
+    index = todoList.length + 1;
+    return index;
+  }
+
+  static updateIndex = () => {
+    const todoList = MyTodoClass.getTodo();
+    todoList.forEach((item) => {
+      const indx = todoList.findIndex((obj) => obj === item);
+      item.index = indx + 1;
+    });
+    localStorage.setItem('todo', JSON.stringify(todoList));
+  }
+
+  addtodolist = () => {
+    const info = MyTodoClass.getTodo();
+    const index = MyTodoClass.getIndex();
+    const todo = {
+      index,
+      desc: this.desc,
+      completed: false,
+    };
+
+    if (info === null) {
+      info.push(todo);
+      localStorage.setItem('todo', JSON.stringify(info));
+    }
+    let newtodoList = JSON.parse(localStorage.getItem('todo'));
+    newtodoList = [...info, todo];
+    localStorage.setItem('todo', JSON.stringify(newtodoList));
+    MyTodoClass.clearInput();
+    MyTodoClass.display();
+    MyTodoClass.updateIndex();
+  }
+
+  static display() {
+    const todoList = MyTodoClass.getTodo();
+    const list = document.querySelector('.list');
+    let str = '';
+    todoList.forEach((todo) => {
+      str += `<form class="list-item">
+            <div class="form-group">
+             <input type="checkbox" id="${todo.index}" value="${todo.desc}" class="checkbox" required>
+            <textarea required class="textarea" >${todo.desc}</textarea>
+            </div>
+          <div class="action-icons">
+              <i class="fa fa-trash-can delete" id="delete"></i>
+          </div>
+          </form>`;
+    });
+    list.innerHTML = str;
+    MyTodoClass.addEventListenersToListItems();
+    MyTodoClass.updateIndex();
+    MyTodoClass.checkedTask();
+  }
+
+  static removeTodo = (index) => {
+    const todoList = MyTodoClass.getTodo();
+    todoList.splice(index, 1);
+    localStorage.setItem('todo', JSON.stringify(todoList));
+    MyTodoClass.addEventListenersToListItems();
+    MyTodoClass.display();
+    MyTodoClass.updateIndex();
+  }
+
+  static updateTodo = (index, value) => {
+    const todoList = MyTodoClass.getTodo();
+    todoList.forEach((item) => {
+      const indx = todoList.findIndex((obj) => obj === item);
+      if (index === indx) {
+        item.desc = value;
+      }
+      localStorage.setItem('todo', JSON.stringify(todoList));
+    });
+    MyTodoClass.updateIndex();
+  }
+
+  static completed = (index, value) => {
+    const todoList = MyTodoClass.getTodo();
+    todoList[index - 1].completed = value;
+    localStorage.setItem('todo', JSON.stringify(todoList));
+    MyTodoClass.updateIndex();
+  }
+
+  static clearCompleted = () => {
+    const todoList = MyTodoClass.getTodo();
+    const uncompleted = todoList.filter((todo) => todo.completed === false);
+    localStorage.setItem('todo', JSON.stringify(uncompleted));
+    MyTodoClass.display();
+  }
+
+  static checkedTask = () => {
+    const todoList = MyTodoClass.getTodo();
+    todoList.forEach((item) => {
+      if (item.completed === true) {
+        document.querySelector(`#\\3${item.index}`).checked = true;
+        document.querySelector(`#\\3${item.index}`).nextElementSibling.classList.toggle('line-through');
+      }
+    });
+  }
+
+  static reset = () => {
+    window.location.reload();
+  }
+
+  static addEventListenersToListItems = () => {
+    document.querySelectorAll('.checkbox').forEach((link) => {
+      link.addEventListener('click', (e) => {
+        link.nextElementSibling.classList.toggle('line-through');
+        MyTodoClass.completed(link.id, e.target.checked);
+      });
+    });
+    document.querySelectorAll('.textarea').forEach((link, index) => {
+      link.addEventListener('keyup', (e) => {
+        e.preventDefault();
+        MyTodoClass.updateTodo(index, e.target.value);
+      });
+    });
+    document.querySelectorAll('.delete').forEach((link, index) => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        MyTodoClass.removeTodo(index);
+      });
+    });
+  };
+}
+
+
+
+
+............................................
+CSS
+.............................................
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@200&display=swap');
+
+body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: 'Poppins', Arial, Helvetica, sans-serif;
+  background-color: gray;
+}
+
+.wrapper {
+  width: 50%;
+  background: white;
+}
+
+.line {
+  border: 0.2px solid #e8e8e9;
+}
+
+.wrap {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.9em 2em;
+  border-bottom: 0.2px solid #e8e8e9;
+}
+
+form {
+  display: flex;
+  justify-content: space-between;
+  padding: 24px;
+  border-bottom: 0.2px solid #e8e8e9;
+}
+
+.form-group textarea {
+  padding: 6px;
+  width: 90%;
+  display: inline-block;
+  border: none;
+  resize: none;
+  outline-width: 0.2px;
+}
+
+form button {
+  background-color: transparent;
+  background-repeat: no-repeat;
+  border: none;
+  display: none;
+  font-size: 1.5rem;
+}
+
+.textarea.line-through {
+  text-decoration: line-through;
+}
+
+form input::placeholder {
+  font-style: italic;
+}
+
+.list {
+  list-style-type: none;
+}
+
+.list-item {
+  padding: 4px 24px;
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 0.2px solid #e8e8e9;
+}
+
+form input {
+  outline: none;
+  border: none;
+}
+
+.form-group {
+  flex: 2;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.form-group input {
+  margin-right: 5px;
+}
+
+#editInput {
+  display: none;
+}
+
+.action-icons i {
+  margin: 0 1em;
+}
+
+.footer-section {
+  padding: 12px;
+  background: #f3f3f3;
+}
+
+.footer-section a {
+  text-decoration: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: inherit;
+}
