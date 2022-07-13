@@ -106,8 +106,4 @@ form input {
   color: inherit;
 }
 
-@media (min-width: 769px) {
-  .wrapper {
-    width: 100%;
-  }
-}
+
