@@ -30,9 +30,5 @@ describe('run add test', () => {
     expect(info.length).toBe(1);
   });
 
-  test('Remove item from the list', () => {
-    MyTodoClass.removeTodo(0);
-    const info = JSON.parse(localStorage.getItem('todo'));
-    expect(info.length).toBe(0);
-  });
+  // Test for remove
 });
